@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <limits>
 #include <fstream>
-#include <filesystem>
 
 #include "date.hpp"
 #include "agenda.hpp"
@@ -376,7 +375,7 @@ namespace agenda
 
   void supprimer_evenement(Agenda &agenda)
   {
-    std::string titre = demander_titre("Donnez le titre de l'évènement à supprimer > ");
+    std::string titre = demander_titre("Donnez le titre de l'évènement à supprimer");
 
     // Initialisation des itérateurs.
     std::forward_list<Evenement>::iterator avant = agenda.liste_evenement.before_begin();
@@ -415,7 +414,7 @@ namespace agenda
     }
 
     // Si un ou des évènements ont été trouvés, on demande l'ID de celui que l'on veut supprimer.
-    std::string id = demander_titre("Donnez l'ID de l'évènement à supprimer > ");
+    std::string id = demander_titre("Donnez l'ID de l'évènement à supprimer");
     est_trouve = false;
 
     // Rénitialisation des itérateurs pour aller chercher à nouveau l'évènement dans la liste.
