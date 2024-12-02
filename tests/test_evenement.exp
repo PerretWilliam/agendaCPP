@@ -1,0 +1,111 @@
+#!/usr/bin/expect -f
+
+
+# -------------------------------------------
+# Création du dossier log si il n'existe pas.
+# -------------------------------------------
+
+file mkdir ./tests/log
+
+# -------------------
+# Création du timeout
+# -------------------
+set timeout 1
+expect_after timeout { send_user "\nErreur : Échec des tests, temps dépassé !\n" ; exit 1 }
+
+# =============================
+# Test sur les évènements de l'agenda.
+# =============================
+
+proc menu {input} {
+  expect {
+    "Bienvenue dans l'agenda TestMenu.\n"   
+    "1. Modifier l'agenda\n"
+    "2. Afficher l'agenda\n"
+    "3. Créer un évènement.\n"
+    "4. Supprimer un évènement.\n"
+    "5. Exporter au format HTML\n"
+    "6. Enregistrer l'agenda\n"
+    "7. Quitter\n"
+    "> " { send "$input\n" }
+  }
+}
+
+log_file -noappend ./tests/log/test_evenement.log
+
+send_user "=============================\n
+Test sur le menu de l'agenda.\n
+=============================\n"
+
+spawn ./agenda
+
+expect {
+  "Bienvenue, que souhaitez-vous faire ?\n"
+  "1. Crée un nouvel agenda.\n"
+  "2. Charger un agenda.\n"
+  "3. Quitter.\n"
+  "> " { send "1\n" }
+}
+
+expect -re "Saisissez.* titre.*" 
+send "TestEvenement\n"
+
+expect -re "description.* point.*" 
+send "Description\nQui fait plusieurs lignes\nPour des tests.\r.\n"
+
+menu 3
+
+# Création du première évènement
+expect -re "Saisissez le titre de l'évènement.*"
+send "TitreEvenement1\n"
+
+expect -re "Saisissez sa description.*laissez un point pour quitter.*"
+send "Description de l'évènement\nQui fait elle aussi\nPlusieurs lignes.\r.\n"
+
+expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
+send "19 03 2024 13 50\n"
+
+expect -re "date de début.*date de fin.*1\\. Oui.*2\\. Non.*"
+send "2\n"
+
+expect -re "date de fin.*(jj/mm/aaaa hh:mm).*"
+send "20 12 2034 15 35\n"
+
+menu 3
+
+# Création du deuxième évènement
+expect -re "Saisissez le titre de l'évènement.*"
+send "TitreEvenement1\n"
+
+expect -re "Saisissez sa description.*laissez un point pour quitter.*"
+send "Description de l'évènement numéro 2\nQui fait elle deux lignes seulement\r.\n"
+
+expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
+send "02 02 2020 11 50\n"
+
+expect -re "date de début.*date de fin.*1\\. Oui.*2\\. Non.*"
+send "1\n"
+
+menu 2
+
+menu 4
+
+expect -re "l'évènement à supprimer.*"
+send "TitreEvenement1\n"
+
+expect -re "Il existe plusioeurs évènements.* ID.*"
+
+expect {
+  -re {ID : ([a-f0-9]+)} {set id $expect_out(1,string)}
+}
+
+expect -re "Donnez l'ID de l'évènement à supprimer.*"
+send "$id\n"
+
+expect -re "L'agenda a été modifié ! L'enregistrer ?.*1\\. Oui.*2\\. Non.*"
+send "1\n"
+
+# L'agenda a été enregistré
+
+expect eof
+send_user "Test des évènements réussit avec succès !\n"

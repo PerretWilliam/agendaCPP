@@ -17,6 +17,20 @@ expect_after timeout { send_user "\nErreur : Échec des tests, temps dépassé !
 # Test sur le menu de l'agenda.
 # =============================
 
+proc menu {input} {
+  expect {
+    "Bienvenue dans l'agenda TestMenu.\n"   
+    "1. Modifier l'agenda\n"
+    "2. Afficher l'agenda\n"
+    "3. Créer un évènement.\n"
+    "4. Supprimer un évènement.\n"
+    "5. Exporter au format HTML\n"
+    "6. Enregistrer l'agenda\n"
+    "7. Quitter\n"
+    "> " { send "$input\n" }
+  }
+}
+
 log_file -noappend ./tests/log/test_menu.log
 
 send_user "=============================\n
@@ -33,29 +47,40 @@ expect {
   "> " { send "1\n" }
 }
 
-expect "Saisissez le titre de l'agenda > " 
+expect -re "Saisissez.* titre.*" 
 send "TestMenu\n"
 
-expect "Saisissez sa description (laissez un point pour quitter) > " 
+expect -re "description.* point.*" 
 send "Description\nQui fait plusieurs lignes\nPour des tests.\r.\n"
 
-expect {
-  "Bienvenue dans l'agenda TestMenu.\n"   
-  "1. Modifier l'agenda\n"
-  "2. Afficher l'agenda\n"
-  "3. Créer un évènement.\n"
-  "4. Supprimer un évènement.\n"
-  "5. Exporter au format HTML\n"
-  "6. Enregistrer l'agenda\n"
-  "7. Quitter\n"
-  "> " { send "7\n" }
-}
+menu 2
 
-expect {
-  "L'agenda a été modifié ! L'enregistrer ?\n"
-  "1. Oui\n"
-  "2. Non\n"
-  "> " { send "2\n" }
-}
+# Affichage de l'agenda.
 
+menu 6
+
+# expect -re "L'agenda a été enregistré dans le fichier.* TestMenu.*"
+
+menu 1
+
+expect -re "Saisissez.* titre.*" 
+send "NouveauTestMenu\n"
+
+expect -re "description.* point.*" 
+send "NouvelleDescription\nQui fait plusieurs lignes\nPour des tests.\r.\n"
+
+menu 2
+
+# Affichage de l'agenda.
+
+menu 5
+
+# Exportation de l'agenda au format HTML.
+
+menu 7
+
+expect -re "L'agenda a été modifié ! L'enregistrer ?.*1\\. Oui.*2\\. Non.*"
+send "2\n"
+
+expect eof
 send_user "Test du menu réussit avec succès !\n"
