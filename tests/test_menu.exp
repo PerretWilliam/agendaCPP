@@ -1,0 +1,61 @@
+#!/usr/bin/expect -f
+
+
+# -------------------------------------------
+# Création du dossier log si il n'existe pas.
+# -------------------------------------------
+
+file mkdir ./tests/log
+
+# -------------------
+# Création du timeout
+# -------------------
+set timeout 1
+expect_after timeout { send_user "\nErreur : Échec des tests, temps dépassé !\n" ; exit 1 }
+
+# =============================
+# Test sur le menu de l'agenda.
+# =============================
+
+log_file -noappend ./tests/log/test_menu.log
+
+send_user "=============================\n
+Test sur le menu de l'agenda.\n
+=============================\n"
+
+spawn ./agenda
+
+expect {
+  "Bienvenue, que souhaitez-vous faire ?\n"
+  "1. Crée un nouvel agenda.\n"
+  "2. Charger un agenda.\n"
+  "3. Quitter.\n"
+  "> " { send "1\n" }
+}
+
+expect "Saisissez le titre de l'agenda > " 
+send "TestMenu\n"
+
+expect "Saisissez sa description (laissez un point pour quitter) > " 
+send "Description\nQui fait plusieurs lignes\nPour des tests.\r.\n"
+
+expect {
+  "Bienvenue dans l'agenda TestMenu.\n"   
+  "1. Modifier l'agenda\n"
+  "2. Afficher l'agenda\n"
+  "3. Créer un évènement.\n"
+  "4. Supprimer un évènement.\n"
+  "5. Exporter au format HTML\n"
+  "6. Enregistrer l'agenda\n"
+  "7. Quitter\n"
+  "> " { send "7\n" }
+}
+
+expect {
+  "L'agenda a été modifié ! L'enregistrer ?\n"
+  "1. Oui\n"
+  "2. Non\n"
+  "> " { send "2\n" }
+}
+
+send_user "Test du menu réussit avec succès !\n"
