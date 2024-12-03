@@ -57,19 +57,45 @@ menu 3
 
 # Création du première évènement
 expect -re "Saisissez le titre de l'évènement.*"
+send "\n"
+
+# Erreur : saisissez un titre non vide !
+
+expect -re "Saisissez le titre de l'évènement.*"
 send "TitreEvenement1\n"
 
 expect -re "Saisissez sa description.*laissez un point pour quitter.*"
 send "Description de l'évènement\nQui fait elle aussi\nPlusieurs lignes.\r.\n"
 
 expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
-send "19 03 2024 13 50\n"
+send "29 02 2023 13 50\n"
+
+# Erreur : date invalide
+
+expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
+send "29 02 2024 13 50\n"
 
 expect -re "date de début.*date de fin.*1\\. Oui.*2\\. Non.*"
 send "2\n"
 
 expect -re "date de fin.*(jj/mm/aaaa hh:mm).*"
-send "20 12 2034 15 35\n"
+send "20/12/2014 15:35\n"
+
+# Erreur : dates inversées !
+
+expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
+send "29022024 13 50\n"
+
+# Erreur : format de la date incorrect !
+
+expect -re "Saisissez la date de début.*(jj/mm/aaaa hh:mm).*"
+send "29 02 2024 13 50\n"
+
+expect -re "date de début.*date de fin.*1\\. Oui.*2\\. Non.*"
+send "2\n"
+
+expect -re "date de fin.*(jj/mm/aaaa hh:mm).*"
+send "20/12/2034 15:35\n"
 
 menu 3
 
@@ -93,14 +119,25 @@ menu 4
 expect -re "l'évènement à supprimer.*"
 send "TitreEvenement1\n"
 
-expect -re "Il existe plusioeurs évènements.* ID.*"
-
+# Le programme liste les évènements ( avec leur ID ) et demande lequel supprimer.
+# étape 1 : trouver les ID des événements
+# étape 2 : prendre le premier ID trouvé par regex et le supprimer
+# Id de la forme [a-f0-9]{10,10}
 expect {
-  -re {ID : ([a-f0-9]+)} {set id $expect_out(1,string)}
+  -re "Donnez l'ID de l'évènement à supprimer.*" {
+    set id [regexp -inline -- {[a-f0-9]{10,10}} $expect_out(buffer)]
+    send "$id\n"
+  }
 }
 
-expect -re "Donnez l'ID de l'évènement à supprimer.*"
-send "$id\n"
+expect -re "sera supprimé.*"
+send "1\n"
+
+# L'évènement a bien été supprimé
+
+menu 2
+
+menu 7
 
 expect -re "L'agenda a été modifié ! L'enregistrer ?.*1\\. Oui.*2\\. Non.*"
 send "1\n"
@@ -108,4 +145,4 @@ send "1\n"
 # L'agenda a été enregistré
 
 expect eof
-send_user "Test des évènements réussit avec succès !\n"
+send_user "Test des évènements réussi avec succès !\n"
